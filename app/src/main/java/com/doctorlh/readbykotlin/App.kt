@@ -1,6 +1,10 @@
 package com.doctorlh.readbykotlin
 
 import android.app.Application
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import com.doctorlh.readbykotlin.dao.DaoMaster
+import com.doctorlh.readbykotlin.dao.DaoSession
 import com.lzy.okgo.OkGo
 import com.lzy.okgo.cache.CacheEntity
 import com.lzy.okgo.cache.CacheMode
@@ -17,9 +21,16 @@ import java.util.logging.Level
  */
 class App : Application() {
 
+    lateinit var mDaoSession: DaoSession
+
+    companion object {
+        private lateinit var sInstance: App
+        fun getInstance() = sInstance
+    }
+
     override fun onCreate() {
         super.onCreate()
-
+        sInstance = this
         val logger = HttpLoggingInterceptor("lh")
         logger.setPrintLevel(HttpLoggingInterceptor.Level.BODY)
         logger.setColorLevel(Level.ALL)
@@ -40,5 +51,8 @@ class App : Application() {
                 .setCacheMode(CacheMode.DEFAULT)
                 .setCacheTime(CacheEntity.CACHE_NEVER_EXPIRE)
                 .retryCount = 3
+
+        var helper = DaoMaster.DevOpenHelper(this, "book")
+        mDaoSession = DaoMaster(helper.writableDatabase).newSession()
     }
 }

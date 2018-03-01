@@ -6,6 +6,7 @@ import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import com.doctorlh.readbykotlin.App
 import com.doctorlh.readbykotlin.BaseActivity
 import com.doctorlh.readbykotlin.LinearLayoutManagerDivider
 import com.doctorlh.readbykotlin.R
@@ -39,6 +40,13 @@ class MainActivity : BaseActivity() {
 
         isNight = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
 
+    }
+
+    override fun onResume() {
+        super.onResume()
+        var books = App.getInstance().mDaoSession.bookDao.loadAll()
+        mAdapter.setData(books)
+        mAdapter.notifyDataSetChanged()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -76,7 +84,4 @@ class MainActivity : BaseActivity() {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
-    fun Any?.string() {
-        if (this == null) "" else toString()
-    }
 }

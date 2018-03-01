@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import com.doctorlh.readbykotlin.App
 import com.doctorlh.readbykotlin.R
 import com.doctorlh.readbykotlin.bean.Book
 import com.doctorlh.readbykotlin.bean.Chapter
@@ -33,7 +34,12 @@ class ChapterAdapter(private val mContext: Context, private val mBook: Book) : R
         } else {
             holder.titleTv.setTextColor(ContextCompat.getColor(mContext, R.color.text))
         }
-        holder.itemView.setOnClickListener { ReadActivity.launch(mContext, chapter.link, chapter.title) }
+        holder.itemView.setOnClickListener {
+            ReadActivity.launch(mContext, chapter.link, chapter.title)
+            mBook.lastRead = position
+            App.getInstance().mDaoSession.bookDao.update(mBook)
+            notifyDataSetChanged()
+        }
     }
 
     override fun getItemCount(): Int {

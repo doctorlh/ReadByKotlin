@@ -2,10 +2,13 @@ package com.doctorlh.readbykotlin.ui
 
 import android.content.Context
 import android.content.Intent
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.EditText
+import com.doctorlh.readbykotlin.App
 import com.doctorlh.readbykotlin.BaseActivity
 import com.doctorlh.readbykotlin.LinearLayoutManagerDivider
 import com.doctorlh.readbykotlin.R
@@ -31,6 +34,10 @@ class ChapterActivity : BaseActivity() {
     private lateinit var mBook: Book
 
     private lateinit var mChapters: List<Chapter>
+    /**
+     * 是否存在
+     */
+    private var isExist = false
 
     companion object {
         fun launch(context: Context, book: Book?) {
@@ -52,6 +59,8 @@ class ChapterActivity : BaseActivity() {
 
         mBook = intent.getSerializableExtra("book") as Book
         title = mBook.title
+
+        isExist = App.getInstance().mDaoSession.bookDao.load(mBook.bookId) != null
 
         mAdapter = ChapterAdapter(this, mBook)
         recycler_view.adapter = mAdapter
@@ -77,6 +86,8 @@ class ChapterActivity : BaseActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu!!.findItem(R.id.star).isVisible = isExist
+        menu!!.findItem(R.id.unstar).isVisible = !isExist
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -84,12 +95,34 @@ class ChapterActivity : BaseActivity() {
         when (item!!.itemId) {
             android.R.id.home -> finish()
             R.id.star -> {
+                App.getInstance().mDaoSession.bookDao.delete(mBook)
+                isExist = false
+                invalidateOptionsMenu()
             }
             R.id.unstar -> {
+                App.getInstance().mDaoSession.bookDao.insert(mBook)
+                isExist = true
+                invalidateOptionsMenu()
             }
             R.id.reverse -> {
+                mChapters.reversed()
+                mAdapter.setData(mChapters)
+                mAdapter.notifyDataSetChanged()
             }
             R.id.locate -> {
+                var builder = AlertDialog.Builder(this)
+                builder.setTitle("跳转至")
+                val view = layoutInflater.inflate(R.layout.view_edittext, null)
+                val editText = view.findViewById<EditText>(R.id.editText)
+                builder.setView(view)
+                builder.setPositiveButton("确定", { dialog, _ ->
+                    var position = editText.text.toString().trim().toInt()
+                    position = Math.min(position, mChapters.size - 1)
+                    recycler_view.layoutManager.scrollToPosition(position)
+                    dialog.dismiss()
+                })
+                builder.setNegativeButton("取消", { dialog, _ -> dialog.dismiss() })
+                builder.create().show()
             }
             else -> {
             }
